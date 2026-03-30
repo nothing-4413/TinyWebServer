@@ -41,7 +41,7 @@ class sem
         //等待信号量
         bool wait()
         {
-            return sem_wait(&m_sem)==0
+            return sem_wait(&m_sem)==0;
             //若信号量值 > 0，则减 1 并返回
             //若信号量值 == 0，则阻塞等待
         };
@@ -61,39 +61,40 @@ class locker
 {
     //封装互斥锁的类
     //同一时刻只允许一个线程进入临界区
-    locker()
-    {
-        if(pthread_mutex_init(&m_mutex,NULL)!=0)
+    public:
+        locker()
         {
-            throw std::exception();
+            if(pthread_mutex_init(&m_mutex,NULL)!=0)
+            {
+                throw std::exception();
+            }
+            //构造函数初始化互斥锁
+            //m_mutex为要初始化的互斥锁对象，NULL表示使用默认属性
         }
-        //构造函数初始化互斥锁
-        //m_mutex为要初始化的互斥锁对象，NULL表示使用默认属性
-    }
-    ~locker()
-    {
-        pthread_mutex_destroy(&m_mutex);
-        //析构函数销毁互斥锁，释放资源
-    }
-    bool lock()
-    {
-        return pthread_mutex_lock(&m_mutex)==0;
-        //锁定互斥锁
-        //如果锁当前没人持有，则当前线程拿到锁，继续执行
-        //如果锁已被别的线程持有，则当前线程阻塞等待
-    }
-    bool unlock()
-    {
-        return pthread_mutex_unlock(&m_mutex)==0;
-        //解锁互斥锁
-        //如果当前线程持有锁，则释放锁，可能唤醒一个阻塞在线程上的 lock()
-        //如果当前线程不持有锁，行为未定义
-    }
-    pthread_mutex_t *get()
-    {
-        return &m_mutex;
-        //返回底层互斥锁的地址。
-    }
+        ~locker()
+        {
+            pthread_mutex_destroy(&m_mutex);
+            //析构函数销毁互斥锁，释放资源
+        }
+        bool lock()
+        {
+            return pthread_mutex_lock(&m_mutex)==0;
+            //锁定互斥锁
+            //如果锁当前没人持有，则当前线程拿到锁，继续执行
+            //如果锁已被别的线程持有，则当前线程阻塞等待
+        }
+        bool unlock()
+        {
+            return pthread_mutex_unlock(&m_mutex)==0;
+            //解锁互斥锁
+            //如果当前线程持有锁，则释放锁，可能唤醒一个阻塞在线程上的 lock()
+            //如果当前线程不持有锁，行为未定义
+        }
+        pthread_mutex_t *get()
+        {
+            return &m_mutex;
+            //返回底层互斥锁的地址。
+        }
     private:
         pthread_mutex_t m_mutex;
         //互斥锁对象，类型为 pthread_mutex_t
@@ -150,3 +151,4 @@ class cond
         //条件变量对象，类型为 pthread_cond_t
         //m_cond 是底层的 POSIX 条件变量对象。
 };
+#endif
