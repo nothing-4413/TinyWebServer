@@ -230,48 +230,34 @@ void http_conn::init()
 
 http_conn::LINE_STATUS http_conn::parse_line()
 {
-    //从读缓冲区里解析一行
     char temp;
     for (; m_checked_idx < m_read_idx; ++m_checked_idx)
     {
         temp = m_read_buf[m_checked_idx];
-    }
-    //从上次检查的位置继续往后检查，直到读缓冲区的最后
 
-    if (temp == '\r')
-    {
-        if ((m_checked_idx + 1) == m_read_idx)
-            return LINE_OPEN;
-        //这一行还没读完整
-        //如果当前读到 \r，但后面那个字符还没到达缓冲区，说明这一行还没完整到来
-
-        else if (m_read_buf[m_checked_idx + 1] == '\n')
+        if (temp == '\r')
         {
-            m_read_buf[m_checked_idx++] = '\0';
-            m_read_buf[m_checked_idx++] = '\0';
-            return LINE_OK;
-            //这一行完整
+            if ((m_checked_idx + 1) == m_read_idx)
+                return LINE_OPEN;
+            else if (m_read_buf[m_checked_idx + 1] == '\n')
+            {
+                m_read_buf[m_checked_idx++] = '\0';
+                m_read_buf[m_checked_idx++] = '\0';
+                return LINE_OK;
+            }
+            return LINE_BAD;
         }
-        //如果看到的是 \r\n，那么把这两个字符都改成字符串结束符 \0
-        //这样原来的整行内容就被切成一个 C 字符串了
-
-        return LINE_BAD;
-        //格式错误
-        //请求格式有问题
-    }
-    else if (temp == '\n')
-    {
-        if (m_checked_idx > 1 && m_read_buf[m_checked_idx - 1] == '\r')
+        else if (temp == '\n')
         {
-            m_read_buf[m_checked_idx - 1] = '\0';
-            m_read_buf[m_checked_idx++] = '\0';
-            return LINE_OK;
+            if (m_checked_idx > 1 && m_read_buf[m_checked_idx - 1] == '\r')
+            {
+                m_read_buf[m_checked_idx - 1] = '\0';
+                m_read_buf[m_checked_idx++] = '\0';
+                return LINE_OK;
+            }
+            return LINE_BAD;
         }
-        //如果看到的是 \n，并且前面一个字符是 \r，那么把这两个字符都改成字符串结束符 \0
-
-        return LINE_BAD;
     }
-
     return LINE_OPEN;
 }
 

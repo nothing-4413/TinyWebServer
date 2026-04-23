@@ -10,7 +10,18 @@ WebServer::WebServer()
     char server_path[200];
     //存储当前工作目录
 
-    getcwd(server_path, 200);
+    ssize_t len = readlink("/proc/self/exe", server_path, sizeof(server_path) - 1);
+    if (len > 0)
+    {
+        server_path[len] = '\0';
+        char *last_slash = strrchr(server_path, '/');
+        if (last_slash)
+            *last_slash = '\0';
+    }
+    else
+    {
+        getcwd(server_path, sizeof(server_path));
+    }
     //获取程序当前运行目录
 
     char root[6] = "/root";
@@ -398,6 +409,7 @@ void WebServer::dealwithread(int sockfd)
 
         while (true)
         {
+            usleep(100);
             if (1 == users[sockfd].improv)
             {
                 //这里开始忙等，等工作线程处理完成
@@ -458,6 +470,7 @@ void WebServer::dealwithwrite(int sockfd)
 
         while (true)
         {
+            usleep(100);
             if (1 == users[sockfd].improv)
             {
                 if (1 == users[sockfd].timer_flag)
